@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İSG Olay Kayıt ve Raporlama</title>
+<style>
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f5f4f0;
+    --color-background-tertiary: #eeedea;
+    --color-background-info: #E6F1FB;
+    --color-background-danger: #FCEBEB;
+    --color-background-success: #EAF3DE;
+    --color-background-warning: #FAEEDA;
+    --color-text-primary: #1a1a1a;
+    --color-text-secondary: #6b6b6b;
+    --color-text-tertiary: #9a9a9a;
+    --color-text-info: #185FA5;
+    --color-text-danger: #A32D2D;
+    --color-text-success: #3B6D11;
+    --color-text-warning: #854F0B;
+    --color-border-primary: rgba(0,0,0,0.4);
+    --color-border-secondary: rgba(0,0,0,0.3);
+    --color-border-tertiary: rgba(0,0,0,0.15);
+    --color-border-info: #85B7EB;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', monospace;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background-primary: #1a1a1a;
+      --color-background-secondary: #2a2a2a;
+      --color-background-tertiary: #333333;
+      --color-background-info: #0C447C;
+      --color-background-danger: #501313;
+      --color-background-success: #173404;
+      --color-background-warning: #412402;
+      --color-text-primary: #f0f0f0;
+      --color-text-secondary: #a0a0a0;
+      --color-text-tertiary: #707070;
+      --color-text-info: #85B7EB;
+      --color-text-danger: #F09595;
+      --color-text-success: #97C459;
+      --color-text-warning: #FAC775;
+      --color-border-primary: rgba(255,255,255,0.4);
+      --color-border-secondary: rgba(255,255,255,0.3);
+      --color-border-tertiary: rgba(255,255,255,0.15);
+      --color-border-info: #378ADD;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-tertiary); padding: 1rem; }
+  input, select, textarea { font-family: inherit; font-size: 13px; padding: 8px 10px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); }
+  input:focus, select:focus, textarea:focus { outline: none; box-shadow: 0 0 0 2px var(--color-border-info); border-color: transparent; }
+  .isg-app { max-width: 1100px; margin: 0 auto; }
+  .isg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 0.5px solid var(--color-border-tertiary); gap: 1rem; flex-wrap: wrap; }
+  .isg-title { font-size: 20px; font-weight: 500; margin: 0; }
+  .isg-subtitle { font-size: 13px; color: var(--color-text-secondary); margin: 2px 0 0; }
+  .isg-nav { display: flex; gap: 4px; background: var(--color-background-secondary); padding: 4px; border-radius: var(--border-radius-md); }
+  .isg-nav button { font-size: 13px; padding: 6px 14px; border: 0; background: transparent; border-radius: 6px; cursor: pointer; color: var(--color-text-secondary); font-family: inherit; }
+  .isg-nav button.active { background: var(--color-background-primary); color: var(--color-text-primary); font-weight: 500; box-shadow: 0 0 0 0.5px var(--color-border-tertiary); }
+  .isg-section { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .isg-section-title { font-size: 15px; font-weight: 500; margin: 0 0 4px; }
+  .isg-section-desc { font-size: 13px; color: var(--color-text-secondary); margin: 0 0 1rem; }
+  .isg-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+  .isg-type-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 14px 16px; cursor: pointer; background: var(--color-background-primary); transition: all 0.15s; }
+  .isg-type-card:hover { border-color: var(--color-border-secondary); }
+  .isg-type-card.selected-nearmiss { border: 2px solid #BA7517; background: #FAEEDA; }
+  .isg-type-card.selected-accident { border: 2px solid #A32D2D; background: #FCEBEB; }
+  .isg-type-label { font-size: 14px; font-weight: 500; margin: 0 0 2px; }
+  .isg-type-desc { font-size: 12px; color: var(--color-text-secondary); margin: 0; }
+  .isg-type-card.selected-nearmiss .isg-type-label { color: #633806; }
+  .isg-type-card.selected-nearmiss .isg-type-desc { color: #854F0B; }
+  .isg-type-card.selected-accident .isg-type-label { color: #791F1F; }
+  .isg-type-card.selected-accident .isg-type-desc { color: #A32D2D; }
+  .isg-fieldset { border: 0; padding: 0; margin: 0 0 1.25rem; }
+  .isg-legend { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); width: 100%; }
+  .isg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .isg-grid-full { grid-column: 1 / -1; }
+  .isg-field { display: flex; flex-direction: column; gap: 4px; }
+  .isg-field label { font-size: 12px; color: var(--color-text-secondary); font-weight: 500; }
+  .isg-field label .req { color: #A32D2D; margin-left: 2px; }
+  .isg-field textarea { min-height: 70px; resize: vertical; }
+  .isg-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem; padding-top: 1rem; border-top: 0.5px solid var(--color-border-tertiary); }
+  .isg-btn-primary { background: var(--color-text-primary); color: var(--color-background-primary); border: 0; padding: 8px 20px; border-radius: var(--border-radius-md); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .isg-btn-primary:hover { opacity: 0.85; }
+  .isg-btn-ghost { background: transparent; border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); padding: 8px 16px; border-radius: var(--border-radius-md); font-family: inherit; font-size: 13px; cursor: pointer; }
+  .isg-btn-ghost:hover { background: var(--color-background-secondary); }
+  .isg-alert { padding: 10px 14px; border-radius: var(--border-radius-md); font-size: 13px; margin-bottom: 1rem; display: none; }
+  .isg-alert.success { background: var(--color-background-success); color: var(--color-text-success); }
+  .isg-alert.error { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .isg-alert.info { background: var(--color-background-info); color: var(--color-text-info); }
+  .isg-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1rem; }
+  .isg-stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+  .isg-stat-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+  .isg-stat-value { font-size: 22px; font-weight: 500; margin: 0; }
+  .isg-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  .isg-table th { text-align: left; font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; padding: 8px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .isg-table td { padding: 10px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: top; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .isg-table tr:hover td { background: var(--color-background-secondary); }
+  .isg-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+  .b-nearmiss { background: #FAEEDA; color: #633806; }
+  .b-accident { background: #FCEBEB; color: #791F1F; }
+  .b-low { background: #EAF3DE; color: #27500A; }
+  .b-mid { background: #FAEEDA; color: #633806; }
+  .b-high { background: #FCEBEB; color: #791F1F; }
+  .b-open { background: var(--color-background-info); color: var(--color-text-info); }
+  .b-closed { background: var(--color-background-success); color: var(--color-text-success); }
+  .isg-empty { text-align: center; padding: 2.5rem 1rem; color: var(--color-text-secondary); font-size: 13px; }
+  .isg-filters { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+  .isg-filters select, .isg-filters input { font-size: 13px; min-width: 140px; }
+  .isg-row-actions { display: flex; gap: 6px; }
+  .isg-icon-btn { background: transparent; border: 0.5px solid var(--color-border-tertiary); padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-family: inherit; color: var(--color-text-primary); }
+  .isg-icon-btn:hover { background: var(--color-background-secondary); }
+  .isg-icon-btn.danger:hover { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .isg-detail-row { display: grid; grid-template-columns: 180px 1fr; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+  .isg-detail-row:last-child { border-bottom: 0; }
+  .isg-detail-label { color: var(--color-text-secondary); }
+  .isg-detail-value { color: var(--color-text-primary); word-break: break-word; }
+  .body-diagram-wrap { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
+  .body-svg { flex-shrink: 0; }
+  .body-part { fill: var(--color-background-secondary); stroke: var(--color-border-secondary); stroke-width: 1; cursor: pointer; transition: fill 0.15s; }
+  .body-part:hover { fill: #F4C0D1; stroke: #993556; }
+  .body-part.selected { fill: #E24B4A; stroke: #791F1F; }
+  .body-info { flex: 1; min-width: 220px; }
+  .body-chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 30px; margin-top: 6px; }
+  .body-chip { display: inline-flex; align-items: center; gap: 6px; background: #FCEBEB; color: #791F1F; font-size: 12px; padding: 3px 4px 3px 10px; border-radius: 4px; }
+  .body-chip button { border: 0; background: transparent; color: #791F1F; cursor: pointer; font-size: 14px; padding: 0 4px; line-height: 1; }
+  .body-hint { font-size: 12px; color: var(--color-text-secondary); margin-top: 10px; line-height: 1.5; }
+  .photo-item { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; margin-bottom: 8px; background: var(--color-background-secondary); }
+  .photo-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--color-text-secondary); font-weight: 500; }
+  .photo-preview { margin-top: 8px; max-width: 160px; max-height: 120px; border-radius: 4px; border: 0.5px solid var(--color-border-tertiary); display: block; }
+</style>
+</head>
+<body>
+<div class="isg-app">
+  <div class="isg-header">
+    <div>
+      <h1 class="isg-title">İSG Olay Kayıt ve Raporlama</h1>
+      <p class="isg-subtitle">Ramak kala ve iş kazalarını dinamik form ile kaydet, izle ve raporla</p>
+    </div>
+    <nav class="isg-nav" id="nav">
+      <button data-view="new" class="active">Yeni kayıt</button>
+      <button data-view="list">Kayıtlar</button>
+      <button data-view="dashboard">Özet</button>
+    </nav>
+  </div>
+  <div id="alert" class="isg-alert"></div>
+  <div id="view"></div>
+</div>
+<script>
+(function(){
+  var STORAGE_KEY='isg_records',COUNTER_KEY='isg_counter';
+  function loadLS(k,fb){try{var v=localStorage.getItem(k);return v?JSON.parse(v):fb}catch(e){return fb}}
+  function saveLS(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  var BODY_PARTS=[
+    {id:'bas',label:'Baş',shape:'circle',attrs:{cx:100,cy:32,r:24}},
+    {id:'boyun',label:'Boyun',shape:'rect',attrs:{x:92,y:55,width:16,height:12,rx:2}},
+    {id:'sol-omuz',label:'Sol Omuz',shape:'ellipse',attrs:{cx:66,cy:80,rx:16,ry:11}},
+    {id:'sag-omuz',label:'Sağ Omuz',shape:'ellipse',attrs:{cx:134,cy:80,rx:16,ry:11}},
+    {id:'gogus',label:'Göğüs',shape:'path',attrs:{d:'M 76 72 L 124 72 L 130 122 L 70 122 Z'}},
+    {id:'karin',label:'Karın',shape:'rect',attrs:{x:72,y:122,width:56,height:45,rx:4}},
+    {id:'kalca',label:'Kalça / Bel',shape:'path',attrs:{d:'M 70 167 L 130 167 L 128 208 L 72 208 Z'}},
+    {id:'sol-ust-kol',label:'Sol Üst Kol',shape:'rect',attrs:{x:44,y:90,width:18,height:55,rx:6}},
+    {id:'sag-ust-kol',label:'Sağ Üst Kol',shape:'rect',attrs:{x:138,y:90,width:18,height:55,rx:6}},
+    {id:'sol-on-kol',label:'Sol Ön Kol',shape:'rect',attrs:{x:44,y:148,width:18,height:55,rx:6}},
+    {id:'sag-on-kol',label:'Sağ Ön Kol',shape:'rect',attrs:{x:138,y:148,width:18,height:55,rx:6}},
+    {id:'sol-el',label:'Sol El',shape:'ellipse',attrs:{cx:53,cy:215,rx:12,ry:15}},
+    {id:'sag-el',label:'Sağ El',shape:'ellipse',attrs:{cx:147,cy:215,rx:12,ry:15}},
+    {id:'sol-uyluk',label:'Sol Uyluk',shape:'rect',attrs:{x:74,y:212,width:22,height:75,rx:6}},
+    {id:'sag-uyluk',label:'Sağ Uyluk',shape:'rect',attrs:{x:104,y:212,width:22,height:75,rx:6}},
+    {id:'sol-diz',label:'Sol Diz',shape:'rect',attrs:{x:74,y:290,width:22,height:14,rx:3}},
+    {id:'sag-diz',label:'Sağ Diz',shape:'rect',attrs:{x:104,y:290,width:22,height:14,rx:3}},
+    {id:'sol-baldir',label:'Sol Baldır',shape:'rect',attrs:{x:74,y:307,width:22,height:75,rx:6}},
+    {id:'sag-baldir',label:'Sağ Baldır',shape:'rect',attrs:{x:104,y:307,width:22,height:75,rx:6}},
+    {id:'sol-ayak',label:'Sol Ayak',shape:'ellipse',attrs:{cx:79,cy:400,rx:18,ry:12}},
+    {id:'sag-ayak',label:'Sağ Ayak',shape:'ellipse',attrs:{cx:121,cy:400,rx:18,ry:12}}
+  ];
+  var state={view:'new',form:newEmptyForm(),records:loadLS(STORAGE_KEY,[]),filter:{type:'all',status:'all',q:''},editingId:null,counter:loadLS(COUNTER_KEY,0)};
+  function todayStr(){return new Date().toISOString().slice(0,10)}
+  function nowTime(){return new Date().toTimeString().slice(0,5)}
+  function newEmptyForm(){return{type:'',incidentNo:'',reportDate:todayStr(),incidentDate:todayStr(),incidentTime:nowTime(),location:'',department:'',reporter:'',shortDesc:'',longDesc:'',attachments:'',equipment:'',weather:'',shift:'',reconstructionPhotos:[],trainingTopic:'',trainer:'',trainerExperience:'',hazardType:'',potentialOutcome:'',riskLevel:'',hazardSource:'',unsafeCondition:'',immediateAction:'',correctiveAction:'',accidentType:'',injuryLevel:'',injuredPerson:'',bodyParts:[],lostDays:'',firstAid:'',hospitalized:'',accidentCause:'',rootCause:'',witnesses:'',damage:'',officialReport:'',preventiveActions:'',responsible:'',deadline:'',status:'Açık'}}
+  function nextNo(){state.counter++;saveLS(COUNTER_KEY,state.counter);return'ISG-'+new Date().getFullYear()+'-'+String(state.counter).padStart(4,'0')}
+  function showAlert(m,k){var e=document.getElementById('alert');e.textContent=m;e.className='isg-alert '+k;e.style.display='block';setTimeout(function(){e.style.display='none'},3500)}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function field(l,n,t,o){o=o||{};var r=o.required?'<span class="req">*</span>':'',v=esc(state.form[n]||''),f=o.full?' class="isg-field isg-grid-full"':' class="isg-field"';if(t==='textarea')return'<div'+f+'><label>'+l+r+'</label><textarea data-field="'+n+'" '+(o.required?'required':'')+'>'+v+'</textarea></div>';if(t==='select'){var opts=(o.options||[]).map(function(x){return'<option value="'+esc(x)+'" '+(state.form[n]===x?'selected':'')+'>'+esc(x)+'</option>'}).join('');return'<div'+f+'><label>'+l+r+'</label><select data-field="'+n+'" '+(o.required?'required':'')+'><option value="">— Seçiniz —</option>'+opts+'</select></div>'}return'<div'+f+'><label>'+l+r+'</label><input type="'+t+'" data-field="'+n+'" value="'+v+'" '+(o.required?'required':'')+' placeholder="'+esc(o.placeholder||'')+'" '+(o.min!=null?'min="'+o.min+'"':'')+'></div>'}
+  function buildBodySvg(){var sel=state.form.bodyParts||[];return'<svg class="body-svg" viewBox="0 0 200 430" width="180" height="387" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="İnsan vücudu diyagramı">'+BODY_PARTS.map(function(p){var isSel=sel.indexOf(p.label)>=0?' selected':'',attrs=Object.keys(p.attrs).map(function(k){return k+'="'+p.attrs[k]+'"'}).join(' ');return'<'+p.shape+' class="body-part'+isSel+'" data-part="'+esc(p.label)+'" '+attrs+'><title>'+esc(p.label)+'</title></'+p.shape+'>'}).join('')+'</svg>'}
+  function buildChips(){var s=state.form.bodyParts||[];if(!s.length)return'<span style="font-size:12px;color:var(--color-text-secondary);font-style:italic;">Henüz bölge seçilmedi</span>';return s.map(function(p){return'<span class="body-chip">'+esc(p)+'<button type="button" data-chip-remove="'+esc(p)+'" aria-label="Kaldır">&times;</button></span>'}).join('')}
+  function buildPhotoSection(){var ph=state.form.reconstructionPhotos||[],items=ph.map(function(p,i){var prev=p.url?'<img class="photo-preview" src="'+esc(p.url)+'" alt="Canlandırma '+(i+1)+'" onerror="this.style.display=\'none\'">':'';return'<div class="photo-item"><div class="photo-item-header"><span>Fotoğraf '+(i+1)+'</span><button type="button" class="isg-icon-btn danger" data-photo-remove="'+i+'">Kaldır</button></div><div class="isg-grid"><div class="isg-field isg-grid-full"><label>Açıklama</label><input type="text" data-photo-field="desc" data-photo-index="'+i+'" value="'+esc(p.desc||'')+'" placeholder="Örn. Kazadan hemen sonra makinenin durumu"></div><div class="isg-field isg-grid-full"><label>Görsel URL / Bağlantı</label><input type="url" data-photo-field="url" data-photo-index="'+i+'" value="'+esc(p.url||'')+'" placeholder="https://... veya dosya yolu"></div></div>'+prev+'</div>'}).join(''),empty=ph.length===0?'<p style="font-size:13px;color:var(--color-text-secondary);margin:0 0 10px;">Henüz canlandırma fotoğrafı eklenmedi.</p>':'';return'<div id="photos-list">'+empty+items+'</div><button type="button" class="isg-btn-ghost" id="btn-add-photo">+ Canlandırma fotoğrafı ekle</button>'}
+  function renderNewView(){var t=state.form.type,snm=t==='nearmiss'?'selected-nearmiss':'',sac=t==='accident'?'selected-accident':'',common='',spec='',train='',photos='',close='';if(t){common='<fieldset class="isg-fieldset"><div class="isg-legend">Ortak bilgiler</div><div class="isg-grid">'+field('Olay No','incidentNo','text',{placeholder:'Kayıtta otomatik üretilir'})+field('Bildirim Tarihi','reportDate','date',{required:true})+field('Olay Tarihi','incidentDate','date',{required:true})+field('Olay Saati','incidentTime','time',{required:true})+field('Lokasyon / Saha','location','text',{required:true,placeholder:'Örn. Üretim Sahası - A Hattı'})+field('Bölüm / Departman','department','text',{required:true})+field('Bildiren Kişi','reporter','text',{required:true})+field('Vardiya Bilgisi','shift','select',{required:true,options:['08:00 - 16:00','16:00 - 00:00','00:00 - 08:00']})+field('İlgili Ekipman','equipment','text',{placeholder:'Örn. Forklift #12'})+field('Hava Koşulları (opsiyonel)','weather','select',{options:['Açık','Bulutlu','Yağmurlu','Karlı','Rüzgârlı','Sisli']})+field('Olayın Kısa Tanımı','shortDesc','text',{required:true,full:true,placeholder:'Tek cümlelik özet'})+field('Olayın Detaylı Açıklaması','longDesc','textarea',{required:true,full:true})+field('Fotoğraf / Dosya Ekleme (bağlantı veya not)','attachments','textarea',{full:true,placeholder:'Dosya bağlantıları veya referansları'})+'</div></fieldset>';photos='<fieldset class="isg-fieldset"><div class="isg-legend">Canlandırma fotoğrafları</div><p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;">Olayın nasıl gerçekleştiğini gösteren canlandırma/sahne fotoğraflarını sırayla ekleyin.</p><div id="photos-container">'+buildPhotoSection()+'</div></fieldset>';train='<fieldset class="isg-fieldset"><div class="isg-legend">İlgili eğitim</div><div class="isg-grid">'+field('Alınacak Eğitim Konusu','trainingTopic','text',{full:true,placeholder:'Örn. Yüksekte çalışma güvenliği'})+field('Eğitimi Verecek Kişi','trainer','text',{placeholder:'Ad Soyad / Ünvan'})+field('Eğitimcinin Tecrübesi (Yıl)','trainerExperience','number',{min:0,placeholder:'0'})+'</div></fieldset>'}if(t==='nearmiss'){spec='<fieldset class="isg-fieldset"><div class="isg-legend">Ramak kala ayrıntıları</div><div class="isg-grid">'+field('Potansiyel Tehlike Türü','hazardType','select',{required:true,options:['Mekanik','Elektrik','Kimyasal','Biyolojik','Ergonomik','Yangın/Patlama','Düşme','Çevresel','Diğer']})+field('Risk Seviyesi','riskLevel','select',{required:true,options:['Düşük','Orta','Yüksek']})+field('Tehlikenin Kaynağı','hazardSource','text',{placeholder:'Örn. Makine koruması eksik'})+field('Güvensiz Durum / Davranış','unsafeCondition','text')+field('Olası Sonuç (Ne olabilirdi?)','potentialOutcome','textarea',{required:true,full:true})+field('Anlık Alınan Önlem','immediateAction','textarea',{full:true})+field('Önerilen Düzeltici Faaliyet','correctiveAction','textarea',{required:true,full:true})+'</div></fieldset>'}if(t==='accident'){spec='<fieldset class="isg-fieldset"><div class="isg-legend">Kaza ayrıntıları</div><div class="isg-grid">'+field('Kaza Türü','accidentType','select',{required:true,options:['Düşme','Çarpma','Kesilme','Sıkışma','Yanma','Elektrik Çarpması','Kimyasal Maruziyet','Trafik','Diğer']})+field('Yaralanma Durumu','injuryLevel','select',{required:true,options:['Yok','Hafif','Ciddi','Ölümcül']})+field('Yaralanan Kişi Bilgileri','injuredPerson','text',{placeholder:'Ad Soyad, Sicil, Görev'})+field('İş Göremezlik (Gün)','lostDays','number',{min:0,placeholder:'0'})+field('İlk Müdahale Yapıldı mı?','firstAid','select',{options:['Evet','Hayır','Gerekmedi']})+field('Hastaneye Sevk Durumu','hospitalized','select',{options:['Sevk edilmedi','Ayakta tedavi','Yatarak tedavi']})+field('Resmi Bildirim Yapıldı mı?','officialReport','select',{options:['Evet - SGK','Evet - Diğer','Hayır','Gerekli değil']})+field('Maddi Hasar Durumu','damage','text',{full:true,placeholder:'Varsa kısaca açıklama ve tahmini tutar'})+field('Kaza Nedeni (İlk Tespit)','accidentCause','textarea',{required:true,full:true})+field('Kök Neden Analizi (5 Neden vb.)','rootCause','textarea',{full:true})+field('Tanık Bilgileri','witnesses','textarea',{full:true,placeholder:'Ad Soyad ve görev/iletişim'})+field('Düzeltici / Önleyici Faaliyetler','preventiveActions','textarea',{required:true,full:true})+'</div></fieldset><fieldset class="isg-fieldset"><div class="isg-legend">Etkilenen vücut bölgesi</div><p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;">Etkilenen bölgelere tıklayın. Birden fazla bölge seçilebilir.</p><div class="body-diagram-wrap"><div id="body-svg-container">'+buildBodySvg()+'</div><div class="body-info"><label style="font-size:12px;color:var(--color-text-secondary);font-weight:500;">Seçili bölgeler</label><div class="body-chips" id="body-chips">'+buildChips()+'</div><p class="body-hint">Not: Sol / Sağ etiketleri diyagramdaki görsel konuma göre verilmiştir. Tıklanan bölge kırmızı renkle işaretlenir, tekrar tıklamak seçimi kaldırır.</p><button type="button" class="isg-btn-ghost" id="btn-clear-body" style="margin-top:8px;">Seçimi temizle</button></div></div></fieldset>'}if(t){close='<fieldset class="isg-fieldset"><div class="isg-legend">Sorumluluk ve kapanış</div><div class="isg-grid">'+field('Sorumlu Kişi','responsible','text',{required:true})+field('Termin Tarihi','deadline','date',{required:true})+field('Kapanış Durumu','status','select',{required:true,options:['Açık','Devam ediyor','Kapalı']})+'</div></fieldset>'}return'<div class="isg-section"><h2 class="isg-section-title">Olay türünü seçin</h2><p class="isg-section-desc">Seçime göre ilgili alanlar dinamik olarak görünür.</p><div class="isg-type-grid"><div class="isg-type-card '+snm+'" data-type="nearmiss"><p class="isg-type-label">Ramak kala</p><p class="isg-type-desc">Yaralanma/hasarla sonuçlanmayan ancak potansiyel riski olan olay</p></div><div class="isg-type-card '+sac+'" data-type="accident"><p class="isg-type-label">Kaza</p><p class="isg-type-desc">Yaralanma, hasar veya iş göremezlikle sonuçlanan olay</p></div></div>'+(!t?'<p style="font-size:13px;color:var(--color-text-secondary);margin:0;">Devam etmek için bir olay türü seçin.</p>':'')+common+spec+photos+train+close+(t?'<div class="isg-actions"><button class="isg-btn-ghost" id="btn-reset">Temizle</button><button class="isg-btn-primary" id="btn-save">'+(state.editingId?'Güncelle':'Kaydet')+'</button></div>':'')+'</div>'}
+  function statusBadge(s){return s==='Kapalı'?'<span class="isg-badge b-closed">Kapalı</span>':'<span class="isg-badge b-open">'+esc(s||'Açık')+'</span>'}
+  function typeBadge(t){return t==='accident'?'<span class="isg-badge b-accident">Kaza</span>':'<span class="isg-badge b-nearmiss">Ramak kala</span>'}
+  function riskBadge(r){if(!r)return'';return'<span class="isg-badge '+(r==='Yüksek'?'b-high':r==='Orta'?'b-mid':'b-low')+'">'+esc(r)+'</span>'}
+  function renderListView(){var ty=state.filter.type,st=state.filter.status,q=state.filter.q;var f=state.records.filter(function(r){if(ty!=='all'&&r.type!==ty)return false;if(st!=='all'&&r.status!==st)return false;if(q){var h=(r.incidentNo+' '+r.location+' '+r.department+' '+r.reporter+' '+r.shortDesc).toLowerCase();if(h.indexOf(q.toLowerCase())<0)return false}return true});var rows=f.length===0?'<tr><td colspan="7"><div class="isg-empty">Kayıt bulunamadı.</div></td></tr>':f.map(function(r){return'<tr><td style="font-family:var(--font-mono);font-size:12px;">'+esc(r.incidentNo)+'</td><td>'+typeBadge(r.type)+'</td><td>'+esc(r.incidentDate)+'</td><td title="'+esc(r.location)+'">'+esc(r.location)+'</td><td title="'+esc(r.shortDesc)+'">'+esc(r.shortDesc)+'</td><td>'+(r.type==='nearmiss'?riskBadge(r.riskLevel):esc(r.injuryLevel||'-'))+' '+statusBadge(r.status)+'</td><td><div class="isg-row-actions"><button class="isg-icon-btn" data-action="view" data-id="'+esc(r.incidentNo)+'">Gör</button><button class="isg-icon-btn" data-action="edit" data-id="'+esc(r.incidentNo)+'">Düzenle</button><button class="isg-icon-btn danger" data-action="delete" data-id="'+esc(r.incidentNo)+'">Sil</button></div></td></tr>'}).join('');return'<div class="isg-section"><div class="isg-filters"><select id="f-type"><option value="all" '+(ty==='all'?'selected':'')+'>Tüm türler</option><option value="nearmiss" '+(ty==='nearmiss'?'selected':'')+'>Ramak kala</option><option value="accident" '+(ty==='accident'?'selected':'')+'>Kaza</option></select><select id="f-status"><option value="all" '+(st==='all'?'selected':'')+'>Tüm durumlar</option><option value="Açık" '+(st==='Açık'?'selected':'')+'>Açık</option><option value="Devam ediyor" '+(st==='Devam ediyor'?'selected':'')+'>Devam ediyor</option><option value="Kapalı" '+(st==='Kapalı'?'selected':'')+'>Kapalı</option></select><input id="f-q" type="search" placeholder="Arama: no, lokasyon, kişi…" value="'+esc(q)+'" style="flex:1;min-width:200px;"><button class="isg-btn-ghost" id="btn-export">JSON dışa aktar</button></div><table class="isg-table"><colgroup><col style="width:110px"><col style="width:100px"><col style="width:100px"><col><col style="width:28%"><col style="width:180px"><col style="width:180px"></colgroup><thead><tr><th>No</th><th>Tür</th><th>Tarih</th><th>Lokasyon</th><th>Özet</th><th>Seviye / Durum</th><th>İşlemler</th></tr></thead><tbody>'+rows+'</tbody></table></div><div id="detail-panel"></div>'}
+  function renderDetail(r){var bp=Array.isArray(r.bodyParts)?r.bodyParts.join(', '):(r.bodyPart||''),ph=Array.isArray(r.reconstructionPhotos)?r.reconstructionPhotos:[],phH=ph.length?ph.map(function(p,i){return'<div style="margin-bottom:8px;"><strong style="font-size:12px;">Fotoğraf '+(i+1)+':</strong> '+esc(p.desc||'(açıklama yok)')+(p.url?' — <a href="'+esc(p.url)+'" target="_blank" style="color:var(--color-text-info);">Bağlantı</a>':'')+'</div>'}).join(''):'';var rows=[['Olay No',r.incidentNo],['Tür',r.type==='accident'?'Kaza':'Ramak kala'],['Bildirim Tarihi',r.reportDate],['Olay Tarihi',r.incidentDate],['Olay Saati',r.incidentTime],['Lokasyon',r.location],['Departman',r.department],['Bildiren',r.reporter],['Vardiya',r.shift],['Ekipman',r.equipment],['Hava',r.weather],['Kısa tanım',r.shortDesc],['Detaylı açıklama',r.longDesc],['Ekler',r.attachments]];if(r.type==='nearmiss'){rows.push(['Tehlike türü',r.hazardType],['Risk seviyesi',r.riskLevel],['Tehlike kaynağı',r.hazardSource],['Güvensiz durum/davranış',r.unsafeCondition],['Olası sonuç',r.potentialOutcome],['Anlık önlem',r.immediateAction],['Düzeltici faaliyet',r.correctiveAction])}else{rows.push(['Kaza türü',r.accidentType],['Yaralanma',r.injuryLevel],['Yaralanan kişi',r.injuredPerson],['Etkilenen bölgeler',bp],['İş göremezlik (gün)',r.lostDays],['İlk müdahale',r.firstAid],['Hastaneye sevk',r.hospitalized],['Resmi bildirim',r.officialReport],['Maddi hasar',r.damage],['Kaza nedeni',r.accidentCause],['Kök neden',r.rootCause],['Tanıklar',r.witnesses],['Düzeltici/önleyici faaliyet',r.preventiveActions])}rows.push(['Eğitim konusu',r.trainingTopic],['Eğitimi verecek kişi',r.trainer],['Eğitimci tecrübesi (yıl)',r.trainerExperience],['Sorumlu',r.responsible],['Termin',r.deadline],['Kapanış durumu',r.status]);var body=rows.filter(function(x){return x[1]!=null&&x[1]!==''}).map(function(x){return'<div class="isg-detail-row"><div class="isg-detail-label">'+esc(x[0])+'</div><div class="isg-detail-value">'+esc(x[1])+'</div></div>'}).join(''),phBlock=phH?'<div class="isg-detail-row"><div class="isg-detail-label">Canlandırma fotoğrafları</div><div class="isg-detail-value">'+phH+'</div></div>':'';return'<div class="isg-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;"><div><h2 class="isg-section-title" style="display:inline;">'+esc(r.incidentNo)+'</h2><span style="margin-left:8px;">'+typeBadge(r.type)+' '+statusBadge(r.status)+'</span></div><button class="isg-btn-ghost" id="btn-close-detail">Kapat</button></div>'+body+phBlock+'</div>'}
+  function renderDashboardView(){var tot=state.records.length,nm=state.records.filter(function(r){return r.type==='nearmiss'}).length,ac=state.records.filter(function(r){return r.type==='accident'}).length,op=state.records.filter(function(r){return r.status!=='Kapalı'}).length,hr=state.records.filter(function(r){return r.riskLevel==='Yüksek'}).length,inj=state.records.filter(function(r){return r.type==='accident'&&r.injuryLevel&&r.injuryLevel!=='Yok'}).length,ld=state.records.reduce(function(s,r){return s+(parseInt(r.lostDays,10)||0)},0),wt=state.records.filter(function(r){return r.trainingTopic}).length;var byDept={};state.records.forEach(function(r){var d=r.department||'—';if(!byDept[d])byDept[d]={nm:0,ac:0};if(r.type==='nearmiss')byDept[d].nm++;else byDept[d].ac++});var dr=Object.entries(byDept).sort(function(a,b){return(b[1].nm+b[1].ac)-(a[1].nm+a[1].ac)}).slice(0,8),dH=dr.length===0?'<div class="isg-empty">Henüz kayıt yok.</div>':'<table class="isg-table"><thead><tr><th>Departman</th><th>Ramak kala</th><th>Kaza</th><th>Toplam</th></tr></thead><tbody>'+dr.map(function(e){return'<tr><td>'+esc(e[0])+'</td><td>'+e[1].nm+'</td><td>'+e[1].ac+'</td><td style="font-weight:500;">'+(e[1].nm+e[1].ac)+'</td></tr>'}).join('')+'</tbody></table>';return'<div class="isg-section"><h2 class="isg-section-title">Genel özet</h2><p class="isg-section-desc">Tüm kayıtların anlık durumu</p><div class="isg-stats"><div class="isg-stat"><p class="isg-stat-label">Toplam kayıt</p><p class="isg-stat-value">'+tot+'</p></div><div class="isg-stat"><p class="isg-stat-label">Ramak kala</p><p class="isg-stat-value">'+nm+'</p></div><div class="isg-stat"><p class="isg-stat-label">Kaza</p><p class="isg-stat-value">'+ac+'</p></div><div class="isg-stat"><p class="isg-stat-label">Açık aksiyon</p><p class="isg-stat-value">'+op+'</p></div><div class="isg-stat"><p class="isg-stat-label">Yüksek riskli</p><p class="isg-stat-value">'+hr+'</p></div><div class="isg-stat"><p class="isg-stat-label">Yaralanmalı</p><p class="isg-stat-value">'+inj+'</p></div><div class="isg-stat"><p class="isg-stat-label">Toplam iş günü kaybı</p><p class="isg-stat-value">'+ld+'</p></div><div class="isg-stat"><p class="isg-stat-label">Eğitim planlı</p><p class="isg-stat-value">'+wt+'</p></div></div></div><div class="isg-section"><h2 class="isg-section-title">Departman bazlı dağılım</h2><p class="isg-section-desc">En yoğun kayıt alınan ilk 8 departman</p>'+dH+'</div>'}
+  function render(){document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('active',b.dataset.view===state.view)});var v=document.getElementById('view');if(state.view==='new')v.innerHTML=renderNewView();else if(state.view==='list')v.innerHTML=renderListView();else v.innerHTML=renderDashboardView();attachHandlers()}
+  function attachHandlers(){document.querySelectorAll('[data-field]').forEach(function(el){el.addEventListener('input',function(e){state.form[e.target.dataset.field]=e.target.value});el.addEventListener('change',function(e){state.form[e.target.dataset.field]=e.target.value})});document.querySelectorAll('.isg-type-card').forEach(function(c){c.addEventListener('click',function(){state.form.type=c.dataset.type;render()})});document.querySelectorAll('.body-part').forEach(function(el){el.addEventListener('click',function(){var p=el.getAttribute('data-part');if(!state.form.bodyParts)state.form.bodyParts=[];var i=state.form.bodyParts.indexOf(p);if(i>=0)state.form.bodyParts.splice(i,1);else state.form.bodyParts.push(p);el.classList.toggle('selected');var ch=document.getElementById('body-chips');if(ch){ch.innerHTML=buildChips();attachChipHandlers()}})});attachChipHandlers();var cb=document.getElementById('btn-clear-body');if(cb)cb.addEventListener('click',function(){state.form.bodyParts=[];document.querySelectorAll('.body-part.selected').forEach(function(el){el.classList.remove('selected')});var ch=document.getElementById('body-chips');if(ch)ch.innerHTML=buildChips()});attachPhotoHandlers();var ap=document.getElementById('btn-add-photo');if(ap)ap.addEventListener('click',function(){if(!state.form.reconstructionPhotos)state.form.reconstructionPhotos=[];state.form.reconstructionPhotos.push({desc:'',url:''});refreshPhotos()});var rb=document.getElementById('btn-reset');if(rb)rb.addEventListener('click',function(){state.form=newEmptyForm();state.editingId=null;render()});var sb=document.getElementById('btn-save');if(sb)sb.addEventListener('click',saveRecord);var ft=document.getElementById('f-type');if(ft)ft.addEventListener('change',function(e){state.filter.type=e.target.value;render()});var fs=document.getElementById('f-status');if(fs)fs.addEventListener('change',function(e){state.filter.status=e.target.value;render()});var fq=document.getElementById('f-q');if(fq)fq.addEventListener('input',function(e){state.filter.q=e.target.value;render()});document.querySelectorAll('[data-action]').forEach(function(b){b.addEventListener('click',function(){handleRowAction(b.dataset.action,b.dataset.id)})});var cd=document.getElementById('btn-close-detail');if(cd)cd.addEventListener('click',function(){document.getElementById('detail-panel').innerHTML=''});var ex=document.getElementById('btn-export');if(ex)ex.addEventListener('click',exportJson)}
+  function attachChipHandlers(){document.querySelectorAll('[data-chip-remove]').forEach(function(btn){btn.addEventListener('click',function(){var p=btn.getAttribute('data-chip-remove'),i=state.form.bodyParts.indexOf(p);if(i>=0){state.form.bodyParts.splice(i,1);var el=document.querySelector('.body-part[data-part="'+p.replace(/"/g,'\\"')+'"]');if(el)el.classList.remove('selected');document.getElementById('body-chips').innerHTML=buildChips();attachChipHandlers()}})})}
+  function attachPhotoHandlers(){document.querySelectorAll('[data-photo-field]').forEach(function(el){el.addEventListener('input',function(e){var i=parseInt(e.target.dataset.photoIndex,10),f=e.target.dataset.photoField;if(state.form.reconstructionPhotos[i])state.form.reconstructionPhotos[i][f]=e.target.value})});document.querySelectorAll('[data-photo-remove]').forEach(function(btn){btn.addEventListener('click',function(){var i=parseInt(btn.dataset.photoRemove,10);state.form.reconstructionPhotos.splice(i,1);refreshPhotos()})})}
+  function refreshPhotos(){var c=document.getElementById('photos-container');if(c){c.innerHTML=buildPhotoSection();attachPhotoHandlers();var ap=document.getElementById('btn-add-photo');if(ap)ap.addEventListener('click',function(){if(!state.form.reconstructionPhotos)state.form.reconstructionPhotos=[];state.form.reconstructionPhotos.push({desc:'',url:''});refreshPhotos()})}}
+  function saveRecord(){var f=state.form,req=['type','incidentDate','incidentTime','location','department','reporter','shortDesc','longDesc','shift','responsible','deadline','status'];if(f.type==='nearmiss')req.push('hazardType','riskLevel','potentialOutcome','correctiveAction');if(f.type==='accident')req.push('accidentType','injuryLevel','accidentCause','preventiveActions');var m=req.filter(function(k){return!f[k]});if(m.length){showAlert('Lütfen zorunlu (*) alanları doldurun.','error');return}if(!f.incidentNo)f.incidentNo=nextNo();var ei=state.records.findIndex(function(r){return r.incidentNo===f.incidentNo});if(ei>=0)state.records[ei]=JSON.parse(JSON.stringify(f));else state.records.unshift(JSON.parse(JSON.stringify(f)));saveLS(STORAGE_KEY,state.records);var we=state.editingId;showAlert('Kayıt başarıyla '+(we?'güncellendi':'oluşturuldu')+': '+f.incidentNo,'success');state.form=newEmptyForm();state.editingId=null;state.view='list';render()}
+  function handleRowAction(a,id){var rec=state.records.find(function(r){return r.incidentNo===id});if(!rec)return;if(a==='view'){document.getElementById('detail-panel').innerHTML=renderDetail(rec);document.getElementById('btn-close-detail').addEventListener('click',function(){document.getElementById('detail-panel').innerHTML=''});document.getElementById('detail-panel').scrollIntoView({behavior:'smooth',block:'start'})}else if(a==='edit'){state.form=JSON.parse(JSON.stringify(rec));if(!Array.isArray(state.form.bodyParts))state.form.bodyParts=rec.bodyPart?[rec.bodyPart]:[];if(!Array.isArray(state.form.reconstructionPhotos))state.form.reconstructionPhotos=[];state.editingId=id;state.view='new';render()}else if(a==='delete'){if(!confirm(id+' numaralı kayıt silinsin mi?'))return;state.records=state.records.filter(function(r){return r.incidentNo!==id});saveLS(STORAGE_KEY,state.records);showAlert('Kayıt silindi.','info');render()}}
+  function exportJson(){var d=JSON.stringify(state.records,null,2),b=new Blob([d],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='isg-kayitlari-'+todayStr()+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(u)},1000)}
+  document.querySelectorAll('#nav button').forEach(function(b){b.addEventListener('click',function(){state.view=b.dataset.view;render()})});
+  render();
+})();
+</script>
+</body>
+</html>
